@@ -14,13 +14,31 @@ import NoResults from "@/components/NoResults";
 
 export default function Explore() {
 
-    const params = useLocalSearchParams<{query?:string; filter?:string;}>();
+    // Update the params type at the top of the file
+    const params = useLocalSearchParams<{
+        query?: string;
+        filter?: string;
+        minPrice?: string;
+        maxPrice?: string;
+        types?: string;
+        minBedrooms?: string;
+        minBathrooms?: string;
+        minSize?: string;
+        maxSize?: string;
+    }>();
 
     const {data: properties, loading, refetch} = useAppwrite({
         fn: getProperties,
         params: {
-            filter: params.filter!,
-            query: params.query!,
+            filter: params.filter || 'All',
+            query: params.query || '',
+            minPrice: params.minPrice,
+            maxPrice: params.maxPrice,
+            types: params.types,
+            minBedrooms: params.minBedrooms,
+            minBathrooms: params.minBathrooms,
+            minSize: params.minSize,
+            maxSize: params.maxSize,
             limit: 20
         },
         skip: true,
@@ -28,13 +46,21 @@ export default function Explore() {
 
     const handleCardPress = (id: string) => router.push(`/properties/${id}`)
 
+        // Update the useEffect to include all params
     useEffect(() => {
         refetch({
-            filter: params.filter!,
-            query: params.query!,
+            filter: params.filter || 'All',
+            query: params.query || '',
+            minPrice: params.minPrice,
+            maxPrice: params.maxPrice,
+            types: params.types,
+            minBedrooms: params.minBedrooms,
+            minBathrooms: params.minBathrooms,
+            minSize: params.minSize,
+            maxSize: params.maxSize,
             limit: 20
-        })
-    }, [params.filter, params.query])
+        });
+    }, [params.filter, params.query, params.minPrice, params.maxPrice, params.types, params.minBedrooms, params.minBathrooms, params.minSize, params.maxSize]);
 
     return (
         <SafeAreaView className="bg-white h-full">

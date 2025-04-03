@@ -100,11 +100,22 @@ export async  function getLatestProperties(){
     }
 }
 
-export async function getProperties({filter, query, limit}: {filter: string; query: string; limit?: number}) {
+export async function getProperties({filter, query, limit, minPrice, maxPrice, types, minBedrooms, minBathrooms, minSize, maxSize}: {
+    filter: string;
+    query: string;
+    limit?: number;
+    minPrice?: string;
+    maxPrice?: string;
+    types?: string;
+    minBedrooms?: string;
+    minBathrooms?: string;
+    minSize?: string;
+    maxSize?: string;
+}) {
     try {
         const buildQuery = [Query.orderDesc('$createdAt')];
 
-        if (filter && filter !== 'All'){
+        if (filter && filter !== 'All') {
             buildQuery.push(Query.equal('type', filter));
         }
 
@@ -118,6 +129,35 @@ export async function getProperties({filter, query, limit}: {filter: string; que
             );
         }
 
+        if (minPrice) {
+            buildQuery.push(Query.greaterThanEqual('price', parseInt(minPrice)));
+        }
+
+        if (maxPrice) {
+            buildQuery.push(Query.lessThanEqual('price', parseInt(maxPrice)));
+        }
+
+        if (types) {
+            const typeArray = types.split(',');
+            buildQuery.push(Query.equal('type', typeArray));
+        }
+
+        if (minBedrooms) {
+            buildQuery.push(Query.greaterThanEqual('bedrooms', parseInt(minBedrooms)));
+        }
+
+        if (minBathrooms) {
+            buildQuery.push(Query.greaterThanEqual('bathrooms', parseInt(minBathrooms)));
+        }
+
+        if (minSize) {
+            buildQuery.push(Query.greaterThanEqual('size', parseInt(minSize)));
+        }
+
+        if (maxSize) {
+            buildQuery.push(Query.lessThanEqual('size', parseInt(maxSize)));
+        }
+
         if (limit) {
             buildQuery.push(Query.limit(limit));
         }
@@ -126,11 +166,10 @@ export async function getProperties({filter, query, limit}: {filter: string; que
             config.databaseId!,
             config.propertiesCollectionId!,
             buildQuery
-        )
+        );
 
         return result.documents;
-    }
-    catch (error) {
+    } catch (error) {
         console.error(error);
         return [];
     }
