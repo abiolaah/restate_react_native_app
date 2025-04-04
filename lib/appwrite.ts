@@ -15,7 +15,15 @@ export const config = {
 
 export const client = new Client();
 
-client.setEndpoint(config.endpoint!).setProject(config.projectId!).setPlatform(config.platform!)
+try {
+    client
+        .setEndpoint(config.endpoint!)
+        .setProject(config.projectId!)
+        .setPlatform(config.platform);
+    // console.log('Appwrite client initialized successfully');
+} catch (error) {
+    console.error('Failed to initialize Appwrite client:', error);
+}
 
 export const avatar = new Avatars(client);
 export const account = new Account(client);
@@ -175,12 +183,12 @@ export async function getProperties({filter, query, limit, minPrice, maxPrice, t
     }
 }
 
-export async function getPropertyById({id}: {id: string}){
+export async function getPropertyById(params: {id: string}){
     try {
         const result = await databases.getDocument(
             config.databaseId!,
             config.propertiesCollectionId!,
-            id,
+            params.id,
         )
 
         return result;
@@ -188,5 +196,45 @@ export async function getPropertyById({id}: {id: string}){
     catch (error) {
         console.error(error);
         return null;
+    }
+}
+
+// Add to appwrite.ts
+export async function createReview({propertyId, name, avatar, review, rating}: { propertyId: string; name: string; avatar: string; review: string; rating: number; }) {
+    try {
+        // Create the review document
+        const newReview = await databases.createDocument(
+            config.databaseId!,
+            config.reviewsCollectionId!,
+            'unique()',
+            {
+                name,
+                avatar,
+                review,
+                rating
+            }
+        );
+
+        // Get current property to update its reviews array
+        const property = await databases.getDocument(
+            config.databaseId!,
+            config.propertiesCollectionId!,
+            propertyId
+        );
+
+        // Update the property with the new review
+        await databases.updateDocument(
+            config.databaseId!,
+            config.propertiesCollectionId!,
+            propertyId,
+            {
+                reviews: [...property.reviews, newReview.$id]
+            }
+        );
+
+        return newReview;
+    } catch (error) {
+        console.error('Error creating review:', error);
+        throw error;
     }
 }
