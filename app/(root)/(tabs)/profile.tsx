@@ -2,10 +2,10 @@ import {View, Text, ScrollView, Image, TouchableOpacity, ImageSourcePropType, Al
 import React from 'react'
 import {SafeAreaView} from "react-native-safe-area-context";
 import icons from "@/constants/icons";
-import images from "@/constants/images";
 import {settings} from "@/constants/data";
 import {useGlobalContext} from "@/lib/global-provider";
 import {logout} from "@/lib/appwrite";
+import {router} from "expo-router";
 
 interface SettingsItemProps {
     icon: ImageSourcePropType;
@@ -53,24 +53,32 @@ const Profile = () => {
 
                 <View className="flex-row justify-center flex mt-5">
                     <View className="flex flex-col items-center relative mt-5">
-                        <Image source={{uri: user?.avatar}}  className="size-44"/>
+                        <Image source={{uri: user?.avatar}}  className="size-44 rounded-full"/>
 
-                        <TouchableOpacity className="absolute bottom-11 right-2">
+                        <TouchableOpacity className="absolute bottom-11 right-2" onPress={() => router.push("/settings/profile-details")}>
                             <Image source={icons.edit} className="size-9" />
                         </TouchableOpacity>
 
-                        <Text className="text-2xl font-rubik-bold mt-2">{user?.name}</Text>
+                        <Text className="text-2xl font-rubik-bold mt-2">{user?.displayName || user?.name}</Text>
                     </View>
                 </View>
 
                 <View className="flex flex-col mt-10">
-                    <SettingsItem icon={icons.calendar} title="My Bookings"  />
-                    <SettingsItem icon={icons.wallet} title="Payments"  />
+                    <SettingsItem icon={icons.calendar} title="My Bookings"/>
+                    <SettingsItem icon={icons.wallet} title="Payments"/>
                 </View>
 
                 <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
                     {settings.slice(2).map((item, index) => (
-                        <SettingsItem key={index} {...item} />
+                        <SettingsItem
+                            key={index}
+                            {...item}
+                            onPress={() => {
+                                if (item.title === "Profile") {
+                                    router.push('/settings/profile-details')
+                                }
+                            }}
+                        />
                     ))}
                 </View>
 

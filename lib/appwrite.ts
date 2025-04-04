@@ -1,6 +1,7 @@
-import {Account, Avatars, Client, Databases, OAuthProvider, Query} from "react-native-appwrite";
+import {Account, Avatars, Client, Databases, ID, OAuthProvider, Query, Storage} from "react-native-appwrite";
 import * as Linking from 'expo-linking';
 import {openAuthSessionAsync} from "expo-web-browser";
+import {Cloudinary} from "@cloudinary/url-gen";
 
 export const config = {
     platform: 'com.victoria.restate',
@@ -11,6 +12,8 @@ export const config = {
     reviewsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REVIEWS_COLLECTION_ID,
     agentsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_AGENTS_COLLECTION_ID,
     propertiesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PROPERTIES_COLLECTION_ID,
+    userProfilesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_PROFILES_COLLECTION_ID,
+    storageBucketId: process.env.EXPO_PUBLIC_APPWRITE_STORAGE_BUCKET_ID || 'default',
 }
 
 export const client = new Client();
@@ -28,7 +31,49 @@ try {
 export const avatar = new Avatars(client);
 export const account = new Account(client);
 export const databases = new Databases(client);
+export const storage = new Storage(client);
 
+
+export const cloudinaryConfig = {
+    cloud_name: process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.EXPO_PUBLIC_CLOUDINARY_API_KEY,
+    api_secret:process.env.EXPO_PUBLIC_CLOUDINARY_API_SECRET,
+    upload_preset_name:process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET_NAME,
+}
+
+//Configure Cloudinary
+const cld = new Cloudinary({
+    cloud: {
+        cloudName: cloudinaryConfig.cloud_name,
+    },
+    url: {
+        secure: true,
+    }
+});
+
+const options = {
+    upload_preset: cloudinaryConfig.upload_preset_name,
+    unsigned: true,
+}
+
+
+export async function createInitialUserProfile(userId: string, name:string) {
+    try {
+        const displayName = name.split(" ")[0];
+        const avatarUrl = avatar.getInitials(name).toString();
+
+        return createUserProfile({
+            userId,
+            name,
+            displayName,
+            avatar: avatarUrl,
+        })
+    }
+    catch (error) {
+        console.error("Error creating initial profile",error);
+        throw error;
+    }
+}
 
 export async  function login(){
     try {
@@ -56,6 +101,13 @@ export async  function login(){
 
         if(!session) throw  new Error('Failed to create a session');
 
+        //Create profile if it doesn't exist
+        const authUser = await account.get();
+        const existingProfile = await getUserProfile(userId);
+        if(!existingProfile) {
+            await createInitialUserProfile(userId, authUser.name)
+        }
+
         return true;
 
     } catch (error) {
@@ -76,19 +128,138 @@ export async function logout() {
 
 export async function getCurrentUser(){
     try{
-        const response = await account.get();
+        const authUser = await account.get();
+        if (!authUser?.$id) return null;
 
-        if(response.$id) {
-            const userAvatar = avatar.getInitials(response.name);
+        // Get initials avatar as fallback
+        const fallBackAvatar = avatar.getInitials(authUser.name).toString();
+
+        //Get auth user first name as display fallback
+        const fallBackDisplayName = authUser.name.split(" ")[0];
+
+        //Try to get user profile
+        let profileData = {
+            name: authUser.name,
+            avatar: fallBackAvatar,
+            displayName: fallBackDisplayName,
+            profile: null as any
+        };
+
+        try{
+            const profile = await getUserProfile(authUser.$id);
+            if(profile) {
+                profileData.profile = profile;
+                profileData.name = profile.name || authUser.name;
+                profileData.avatar = profile.avatar || fallBackAvatar;
+                profileData.displayName = profile.displayName || fallBackDisplayName;
+            }
+        }
+        catch (profileError){
+            console.log('No user profile found, using auth data');
+        }
 
             return {
-                ...response,
-                avatar: userAvatar.toString(),
+                ...authUser,
+                ...profileData
             };
-        }
     }catch (error) {
         console.error(error);
         return null;
+    }
+}
+
+export async function getUserProfile(userId: string){
+    try {
+        const result = await databases.listDocuments(
+            config.databaseId!,
+            config.userProfilesCollectionId!,
+            [Query.equal('userId', userId), Query.limit(1)]
+        );
+
+        return result.documents[0] || null;
+    }
+    catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+
+export async function createUserProfile({userId, name, avatar, displayName}: {userId: string; name: string; avatar?: string; displayName: string; }){
+    try {
+        const result = await databases.createDocument(
+            config.databaseId!,
+            config.userProfilesCollectionId!,
+            ID.unique(),
+            {
+                userId,
+                name,
+                displayName,
+                ...(avatar && { avatar }),
+            }
+        );
+
+        //Also update the auth user's name
+        await account.updateName(name);
+
+        return result;
+    }
+    catch (error) {
+        console.error("Error creating user profile",error);
+        throw error;
+    }
+}
+
+
+export async function updateUserProfile({profileId, name, avatar, displayName}: {profileId: string; name: string; avatar?: string; displayName: string; }) {
+    try {
+        const result = await databases.updateDocument(
+            config.databaseId!,
+            config.userProfilesCollectionId!,
+            profileId,
+            {
+                name,
+                displayName,
+                ...(avatar && { avatar })
+            }
+        );
+
+        //Also update the auth user's name
+        await account.updateName(name);
+
+        return result;
+    } catch (error) {
+        console.error('Error updating user profile:', error);
+        throw error;
+    }
+}
+
+export async function uploadProfileImage(uri: string) {
+    try {
+        const formData = new FormData();
+        formData.append('file', {
+            uri,
+            type: 'image/jpeg',
+            name: `profile_${Date.now()}.jpg`
+        } as any);
+        formData.append('upload_preset', cloudinaryConfig.upload_preset_name!);
+
+        const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${cloudinaryConfig.cloud_name}/image/upload`,
+            {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
+
+        const data = await response.json();
+        return data.secure_url;
+    } catch (error) {
+        console.error('Error uploading to Cloudinary:', error);
+        throw error;
     }
 }
 

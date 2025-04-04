@@ -5,7 +5,6 @@ import Search from "@/components/Search";
 import {Card, FeaturedCard} from "@/components/Cards";
 import Filters from "@/components/Filters";
 import {useGlobalContext} from "@/lib/global-provider";
-import seed from "@/lib/seed";
 import {router, useLocalSearchParams} from "expo-router";
 import {useAppwrite} from "@/lib/useAppwrite";
 import {getLatestProperties, getProperties} from "@/lib/appwrite";
@@ -89,7 +88,7 @@ export default function Index() {
                             <Image source={{uri: user?.avatar}} className="size-12 rounded-full"/>
                             <View className="flex flex-col items-start ml-2 justify-center">
                                 <Text className="text-xs font-rubik text-black-100">Good Morning</Text>
-                                <Text className="text-base font-rubik-medium text-black-300">{user?.name}</Text>
+                                <Text className="text-base font-rubik-medium text-black-300">{user?.displayName || user?.name}</Text>
                             </View>
                         </View>
 
