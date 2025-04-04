@@ -61,9 +61,9 @@ Build a full-stack Real Estate application with React Native, featuring Google a
 and many more, including code architecture and reusability
 
 ### <a name="features">Extended Features</a>
-👉 **Authentication with Google**: Secure and seamless user sign-ins using Google’s authentication service.
+👉 **Filter Modal**: Provide a modal where users can filter their search based on price, property type and house details. For the specific code, see feat/filter branch.
 
-👉 **Home Page**: Displays the latest and recommended properties with powerful search and filter functionality.
+👉 **Comment and Reviews**: Extended the comment functionality from just viewing a single comment to allowing users to add comments and view all comments. For the specific code, see feat/reviews branch.
 
 ## <a name="quick-start">🤸 Quick Start</a>
 
