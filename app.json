@@ -45,7 +45,13 @@
           "./assets/fonts/Rubik-SemiBold.ttf"
         ]
       }
-    ]
+    ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you set your personalized avatar."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
