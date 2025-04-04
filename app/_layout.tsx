@@ -4,6 +4,7 @@ import "./globals.css";
 import {useFonts} from "expo-font";
 import {useEffect} from "react";
 import GlobalProvider from "@/lib/global-provider";
+import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -26,6 +27,7 @@ export default function RootLayout() {
   return (
       <GlobalProvider>
         <Stack screenOptions={{headerShown: false}} />
+        <Toast />
       </GlobalProvider>
   );
 }
