@@ -1,29 +1,39 @@
-import {View, Text} from "react-native";
+import {View, Text, TouchableOpacity} from "react-native";
 import {router} from "expo-router";
-import {BookingItem} from "@/components/BookingItem";
+import {formatLocalDate} from "@/lib/timezone-converter";
 
 export const TodaysBookings = ({ bookings }: { bookings: Booking[] }) => {
+    const now = new Date();
+    const todayString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000))
+        .toISOString().split('T')[0];
+
     const todaysBookings = bookings?.filter(booking => {
-        const today = new Date().toISOString().split('T')[0];
-        const bookingDate = new Date(booking.date).toISOString().split('T')[0];
-        return bookingDate === today;
+        // Compare the raw date strings (both in UTC)
+        return booking.date.split('T')[0] === todayString;
     }) || [];
 
     if (todaysBookings.length === 0) return null;
 
     return (
-        <View className="mt-4">
+        <View className="mt-4 p-4 bg-gray-50 rounded-lg">
             <Text className="text-lg font-bold mb-2">Today's Bookings</Text>
             {todaysBookings.map(booking => (
-                <BookingItem
+                <TouchableOpacity
                     key={booking.$id}
-                    booking={booking}
+                    className="border border-gray-200 rounded-lg p-3 mb-2"
                     onPress={() => {
                         if (booking.propertyId) {
                             router.push(`/properties/${booking.propertyId}`);
                         }
                     }}
-                />
+                >
+                    <Text className="font-semibold">
+                        {booking.property?.name || 'Property'}
+                    </Text>
+                    <Text className="text-gray-600">
+                        {formatLocalDate(booking.date)} - {booking.time} ({booking.status})
+                    </Text>
+                </TouchableOpacity>
             ))}
         </View>
     );
