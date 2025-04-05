@@ -77,6 +77,10 @@ const Profile = () => {
                                 if (item.title === "Profile") {
                                     router.push('/settings/profile-details')
                                 }
+
+                                if (item.title === "Help Center") {
+                                    router.push('/settings/help-center')
+                                }
                             }}
                         />
                     ))}
