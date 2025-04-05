@@ -67,6 +67,15 @@ and many more, including code architecture and reusability
 
 👉 **Profile Details**: Extended the profile functionality, so that users can set name, display name and image. With this the index and profile screen displays the user's display name, see [feat/profile](https://github.com/abiolaah/restate_react_native_app/tree/feat/profile) branch.
 
+👉 **Bookings**: Extended the booking feature for:
+- Users can book property viewings via the "Book Now" button, which shows real-time status (Pending/Confirmed/Cancelled) and prevents duplicate bookings by disabling the button if already booked.
+- The booking process includes a loading state for smooth interaction.
+- Bookings can be managed in a dual-view interface (List & Calendar), with the calendar displaying color-coded status dots and the list showing detailed information like property name, agent details, date/time, status, and optional notes.
+- A "Today’s Bookings" section highlights same-day appointments for quick access. 
+- The system ensures timezone-aware date handling for consistency, uses memoized components for optimized performance, and maintains a responsive design for all devices.
+- Built with react-native-calendars and powered by Appwrite backend, it delivers a seamless and reliable booking experience
+- See [feat/profile](https://github.com/abiolaah/restate_react_native_app/tree/feat/profile) branch.
+
 ## <a name="quick-start">🤸 Quick Start</a>
 
 Follow these steps to set up the project locally on your machine.
