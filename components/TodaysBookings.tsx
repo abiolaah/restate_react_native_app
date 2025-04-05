@@ -5,7 +5,8 @@ import {BookingItem} from "@/components/BookingItem";
 export const TodaysBookings = ({ bookings }: { bookings: Booking[] }) => {
     const todaysBookings = bookings?.filter(booking => {
         const today = new Date().toISOString().split('T')[0];
-        return booking.date.split('T')[0] === today;
+        const bookingDate = new Date(booking.date).toISOString().split('T')[0];
+        return bookingDate === today;
     }) || [];
 
     if (todaysBookings.length === 0) return null;

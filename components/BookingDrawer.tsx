@@ -68,10 +68,13 @@ export default function BookingDrawer({
 
         setLoading(true);
         try {
+            // Format the date as YYYY-MM-DD without timezone conversion
+            const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+
             await createBooking({
                 propertyId: property.$id,
                 agentId: property.agent.$id,
-                date: date.toISOString().split('T')[0],
+                date: formattedDate,
                 time,
                 notes: notes || undefined
             });
