@@ -1,15 +1,15 @@
-import {View, Text, TouchableOpacity, Image, ActivityIndicator, FlatList, Modal} from 'react-native'
+import {View, Text, TouchableOpacity, Image, ActivityIndicator, FlatList} from 'react-native'
 import React, {useState} from 'react'
 import {router} from "expo-router";
 import icons from "@/constants/icons";
 import {getUserBookings} from "@/lib/appwrite";
 import {useAppwrite} from "@/lib/useAppwrite";
 import {SafeAreaView} from "react-native-safe-area-context";
-import Toast from "react-native-toast-message";
 import {Calendar, DateData} from "react-native-calendars";
-import {DayBookingsModal} from "@/components/DayBookingsModal";
 import {TodaysBookings} from "@/components/TodaysBookings";
-import {formatLocalDate} from "@/lib/timezone-converter";
+import {formatDateForDisplay} from "@/lib/timezone-converter";
+import {BookingItem} from "@/components/BookingItem";
+import {DayBookingList} from "@/components/DayBookingList";
 
 interface MarkedDatesProps{
     [date: string]: {
@@ -33,7 +33,6 @@ const Bookings = () => {
     });
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
     const [selectedDayBookings, setSelectedDayBookings] = useState<Booking[]>([]);
-    const [showDayBookings, setShowDayBookings] = useState(false);
 
     if (loading) {
         return (
@@ -44,14 +43,14 @@ const Bookings = () => {
     }
 
     const markedDates: MarkedDatesProps = bookings?.reduce((acc: MarkedDatesProps, booking) => {
-        const date = booking.date.split('T')[0]; // Format date as YYYY-MM-DD
+        const date = formatDateForDisplay(booking.date) // Format date as YYYY-MM-DD
         acc[date] = {
             marked: true,
             dotColor: booking.status === 'Confirmed' ? 'green' :
                 booking.status === 'Pending' ? 'yellow' :
                     booking.status === 'Cancelled' ? 'red' : 'blue',
             selected: false,
-            selectedColor: '#3b82f6',
+            selectedColor: '#0061FF',
         };
         return acc;
     }, {} as MarkedDatesProps) || {};
@@ -59,21 +58,15 @@ const Bookings = () => {
     // Explicitly check for empty array (not just falsy value)
     const hasBookings = Array.isArray(bookings) && bookings.length > 0;
 
-    const handleViewModeToggle = (mode: 'list' | 'calendar') => {
-        setViewMode(mode);
-    };
 
     const handleDayPress = (day: DateData) => {
-        // Use UTC date for comparison
-        const utcDateString = new Date(day.dateString).toISOString().split('T')[0];
-        const dayBookings = bookings?.filter(
-            booking => {
-                const bookingDate = new Date(booking.date).toISOString().split('T')[0];
-                return bookingDate === utcDateString;
-            }
-        ) || [];
+        // Use the exact date string from the calendar (YYYY-MM-DD format)
+        const selectedDateString = day.dateString;
+        const dayBookings = bookings?.filter(booking => {
+            const bookingDate = formatDateForDisplay(booking.date);
+            return bookingDate === selectedDateString;
+        }) || [];
         setSelectedDayBookings(dayBookings);
-        setShowDayBookings(true);
     }
 
     // Custom Pressable component to avoid navigation context issues
@@ -92,9 +85,7 @@ const Bookings = () => {
                 className={`px-3 py-1 rounded-full ${isActive ? 'bg-white shadow-sm' : ''}`}
                 onTouchEnd={onPress} // Using onTouchEnd instead of onPress
             >
-                <Text className={`${isActive ? 'text-blue-500' : 'text-gray-500'}`}>
-                    {mode === 'list' ? 'List' : 'Calendar'}
-                </Text>
+                <Image source={mode === 'list' ? icons.list : icons.calendar} className={`size-5`} />
             </View>
         );
     };
@@ -146,35 +137,7 @@ const Bookings = () => {
                     refreshing={loading}
                     onRefresh={refetch}
                     renderItem={({ item }) => (
-                        <TouchableOpacity
-                            className="border border-gray-200 rounded-lg p-4 mb-4"
-                            onPress={() => item.propertyId && router.push(`/properties/${item.propertyId}`)}
-                        >
-                            <View className="flex-row justify-between">
-                                <Text className="text-lg font-bold flex-1">
-                                    {item.property?.name || 'Property No Longer Available'}
-                                </Text>
-                                <View className={`px-2 py-1 rounded-full ${statusColors[item.status]}`}>
-                                    <Text className="text-xs font-semibold capitalize">
-                                        {item.status}
-                                    </Text>
-                                </View>
-                            </View>
-
-                            <Text className="text-gray-600 mt-1">
-                                Agent: {item.agent?.name || 'Agent'}
-                            </Text>
-
-                            <Text className="text-gray-600 mt-1">
-                                Date: {formatLocalDate(item.date)} at {item.time}
-                            </Text>
-
-                            {item.notes && (
-                                <Text className="text-gray-600 mt-1">
-                                    Notes: {item.notes}
-                                </Text>
-                            )}
-                        </TouchableOpacity>
+                        <BookingItem booking={item} onPress={() => item.propertyId && router.push(`/properties/${item.propertyId}`)} />
                     )}
                 />
             ) : (
@@ -205,8 +168,18 @@ const Bookings = () => {
                         onDayPress={handleDayPress}
                     />
 
-                    {/*Day bookings modal*/}
-                    <DayBookingsModal visible={showDayBookings} onClose={() => setShowDayBookings(false)} bookings={selectedDayBookings} />
+                    {/* Selected Day's Bookings (replaces the modal) */}
+                    {selectedDayBookings.length > 0 && (
+                        <View className="mt-4 p-4 bg-gray-50 rounded-lg">
+                            <Text className="text-lg font-bold mb-2">
+                                Bookings for {selectedDayBookings[0].date.split('T')[0]}
+                            </Text>
+
+                            {selectedDayBookings.map(booking => (
+                                <DayBookingList key={booking.$id} booking={booking} />
+                            ))}
+                        </View>
+                    )}
 
                     {/* Today's bookings sections*/}
                     <TodaysBookings bookings={bookings} />
