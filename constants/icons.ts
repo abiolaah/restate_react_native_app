@@ -12,6 +12,7 @@ import calendar from "@/assets/icons/calendar.png";
 import info from "@/assets/icons/info.png";
 import language from "@/assets/icons/language.png";
 import logout from "@/assets/icons/logout.png";
+import list from "@/assets/icons/list.png";
 import people from "@/assets/icons/people.png";
 import shield from "@/assets/icons/shield.png";
 import wallet from "@/assets/icons/wallet.png";
@@ -47,6 +48,7 @@ export default {
   info,
   language,
   logout,
+  list,
   people,
   shield,
   wallet,
@@ -61,6 +63,7 @@ export default {
   cutlery,
   dog,
   dumbell,
+  heartFill,
   laundry,
   run,
   swim,
