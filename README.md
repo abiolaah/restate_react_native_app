@@ -74,7 +74,7 @@ and many more, including code architecture and reusability
 - A "Today’s Bookings" section highlights same-day appointments for quick access. 
 - The system ensures timezone-aware date handling for consistency, uses memoized components for optimized performance, and maintains a responsive design for all devices.
 - Built with react-native-calendars and powered by Appwrite backend, it delivers a seamless and reliable booking experience
-- See [feat/profile](https://github.com/abiolaah/restate_react_native_app/tree/feat/profile) branch.
+- See [feat/profile](https://github.com/abiolaah/restate_react_native_app/tree/feat/bookings)) branch.
 
 ## <a name="quick-start">🤸 Quick Start</a>
 
