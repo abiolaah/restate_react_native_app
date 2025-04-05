@@ -1,4 +1,4 @@
-import {Account, Avatars, Client, Databases, ID, OAuthProvider, Query, Storage} from "react-native-appwrite";
+import {Account, Avatars, Client, Databases, ID, OAuthProvider, Query} from "react-native-appwrite";
 import * as Linking from 'expo-linking';
 import {openAuthSessionAsync} from "expo-web-browser";
 import {Cloudinary} from "@cloudinary/url-gen";
@@ -13,7 +13,7 @@ export const config = {
     agentsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_AGENTS_COLLECTION_ID,
     propertiesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PROPERTIES_COLLECTION_ID,
     userProfilesCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_PROFILES_COLLECTION_ID,
-    storageBucketId: process.env.EXPO_PUBLIC_APPWRITE_STORAGE_BUCKET_ID || 'default',
+    bookingsCollectionId: process.env.EXPO_PUBLIC_APPWRITE_BOOKINGS_COLLECTION_ID,
 }
 
 export const client = new Client();
@@ -23,7 +23,6 @@ try {
         .setEndpoint(config.endpoint!)
         .setProject(config.projectId!)
         .setPlatform(config.platform);
-    // console.log('Appwrite client initialized successfully');
 } catch (error) {
     console.error('Failed to initialize Appwrite client:', error);
 }
@@ -31,7 +30,6 @@ try {
 export const avatar = new Avatars(client);
 export const account = new Account(client);
 export const databases = new Databases(client);
-export const storage = new Storage(client);
 
 
 export const cloudinaryConfig = {
@@ -79,7 +77,7 @@ export async  function login(){
     try {
         const redirectUri = Linking.createURL('/');
 
-        const response = await account.createOAuth2Token(OAuthProvider.Google, redirectUri);
+        const response = account.createOAuth2Token(OAuthProvider.Google, redirectUri);
 
         if (!response) throw  new Error('Failed to login');
 
@@ -184,7 +182,6 @@ export async function getUserProfile(userId: string){
     }
 }
 
-
 export async function createUserProfile({userId, name, avatar, displayName}: {userId: string; name: string; avatar?: string; displayName: string; }){
     try {
         const result = await databases.createDocument(
@@ -209,7 +206,6 @@ export async function createUserProfile({userId, name, avatar, displayName}: {us
         throw error;
     }
 }
-
 
 export async function updateUserProfile({profileId, name, avatar, displayName}: {profileId: string; name: string; avatar?: string; displayName: string; }) {
     try {
@@ -356,6 +352,8 @@ export async function getProperties({filter, query, limit, minPrice, maxPrice, t
 
 export async function getPropertyById(params: {id: string}){
     try {
+        if(!params.id) return null;
+
         const result = await databases.getDocument(
             config.databaseId!,
             config.propertiesCollectionId!,
@@ -370,7 +368,6 @@ export async function getPropertyById(params: {id: string}){
     }
 }
 
-// Add to appwrite.ts
 export async function createReview({propertyId, name, avatar, review, rating}: { propertyId: string; name: string; avatar: string; review: string; rating: number; }) {
     try {
         // Create the review document
@@ -407,5 +404,167 @@ export async function createReview({propertyId, name, avatar, review, rating}: {
     } catch (error) {
         console.error('Error creating review:', error);
         throw error;
+    }
+}
+
+export async function createBooking({propertyId, agentId, date, time, notes}:{propertyId:string; agentId: string; date: string; time:string; notes?:string}){
+    try {
+        const user = await account.get();
+
+        if(!user || !user.$id) throw new Error('No user authenticated.');
+
+        // Get user profile to include displayName if needed
+        const profile = await getUserProfile(user.$id);
+        const displayName = profile?.displayName || user.name?.split(" ")[0] || 'User';
+
+        // Create a Date object from the input date string
+        const [year, month, day] = date.split('-');
+        const bookingDate = new Date(Date.UTC(
+            parseInt(year),
+            parseInt(month) - 1, // months are 0-indexed
+            parseInt(day)
+        ));
+
+        // Format the date in UTC to ensure consistent storage
+        const formattedDate = bookingDate.toISOString().split('T')[0];
+
+        const bookingData: Record<string, any> = {
+            propertyId,
+            agentId,
+            userId: user.$id,
+            date: formattedDate,
+            time,
+            status: 'Pending',
+            notes: notes || '',
+            $permissions: [
+                `read("user:${user.$id}")`,
+                `update("user:${user.$id}")`,
+                `delete("user:${user.$id}")`
+            ]
+        };
+
+        const result = await databases.createDocument(
+            config.databaseId!,
+            config.bookingsCollectionId!,
+            ID.unique(),
+            bookingData
+        );
+        return result;
+    }
+    catch (error) {
+        console.error("Booking Creation failed:",error);
+        throw error;
+    }
+}
+
+export async function getUserBookings(): Promise<Booking[]> {
+    try {
+        const user = await account.get();
+        if (!user?.$id) return [];
+
+        const result = await databases.listDocuments(
+            config.databaseId!,
+            config.bookingsCollectionId!,
+            [
+                Query.equal('userId', user.$id),
+                Query.orderDesc('$createdAt'),
+                Query.limit(100)
+            ]
+        );
+
+        if (!result.documents || result.documents.length === 0) {
+            return [];
+        }
+
+        // Fetch property and agent details for each booking
+        const bookingsWithDetails = await Promise.all(
+            result.documents.map(async (doc) => {
+                let propertyDetails = null;
+                let agentDetails = null;
+
+                try {
+                    if (doc.propertyId) {
+                        propertyDetails = await databases.getDocument(
+                            config.databaseId!,
+                            config.propertiesCollectionId!,
+                            doc.propertyId
+                        );
+                    }
+
+                    if (doc.agentId) {
+                        agentDetails = await databases.getDocument(
+                            config.databaseId!,
+                            config.agentsCollectionId!,
+                            doc.agentId
+                        );
+                    }
+                } catch (error) {
+                    console.error('Error fetching details:', error);
+                }
+
+                return {
+                    ...doc,
+                    property: propertyDetails ? {
+                        $id: propertyDetails.$id,
+                        name: propertyDetails.name,
+                        image: propertyDetails.image,
+                        address: propertyDetails.address
+                    } : null,
+                    agent: agentDetails ? {
+                        $id: agentDetails.$id,
+                        name: agentDetails.name,
+                        email: agentDetails.email,
+                        avatar: agentDetails.avatar
+                    } : null
+                };
+            })
+        );
+
+        return bookingsWithDetails as Booking[];
+    } catch (error) {
+        console.error('Failed to fetch bookings:', error);
+        return [];
+    }
+}
+
+export async function updateBooking(bookingId: string, updates: {
+    status?: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
+    date?: string;
+    time?: string;
+    notes?: string;
+}) {
+    try {
+        const result = await databases.updateDocument(
+            config.databaseId!,
+            config.bookingsCollectionId!,
+            bookingId,
+            updates
+        );
+        return result;
+    } catch (error) {
+        console.error('Error updating booking:', error);
+        throw error;
+    }
+}
+
+export async function getAgentBookings() {
+    try {
+        const user = await account.get();
+        if (!user?.$id) return [];
+
+        const result = await databases.listDocuments(
+            config.databaseId!,
+            config.bookingsCollectionId!,
+            [
+                Query.equal('agentId', user.$id),
+                Query.orderDesc('date'),
+                Query.limit(100)
+            ]
+        );
+
+        return result.documents;
+    } catch (error) {
+        console.error('Failed to fetch agent bookings:', error);
+        return [];
     }
 }

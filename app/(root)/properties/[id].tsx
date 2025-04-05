@@ -6,7 +6,7 @@ import {
     TouchableOpacity,
     View,
     Dimensions,
-    Platform, TextInput, Alert, Keyboard, KeyboardAvoidingView, findNodeHandle,
+    Platform, TextInput, Alert, Keyboard, KeyboardAvoidingView, findNodeHandle, ActivityIndicator,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 
@@ -16,9 +16,10 @@ import Comment from "@/components/Comment";
 import { facilities } from "@/constants/data";
 
 import { useAppwrite } from "@/lib/useAppwrite";
-import {createReview, getPropertyById} from "@/lib/appwrite";
+import {createReview, getPropertyById, getUserBookings} from "@/lib/appwrite";
 import {useEffect, useRef, useState} from "react";
 import {useGlobalContext} from "@/lib/global-provider";
+import BookingDrawer from "@/components/BookingDrawer";
 
 const Property = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
@@ -33,6 +34,10 @@ const Property = () => {
     const [reviews, setReviews] = useState<any[]>([]);
     const [keyboardOffset, setKeyboardOffset] = useState(0);
     const [scrollOffset, setScrollOffset] = useState(100); // Default offset of 100px
+
+    const [showBooking, setShowBooking] = useState(false);
+    const [userBookings, setUserBookings] = useState<Booking[]>([]);
+    const [isCheckingBookings, setIsCheckingBookings] = useState(true);
 
 
     // Update your useAppwrite hook usage
@@ -66,6 +71,27 @@ const Property = () => {
             keyboardDidHideListener.remove();
         };
     }, []);
+
+    useEffect(() => {
+        const fetchUserBookings = async () => {
+            try {
+                const bookings = await getUserBookings();
+                setUserBookings(bookings);
+            } catch (error) {
+                console.error("Failed to fetch user bookings:", error);
+            } finally {
+                setIsCheckingBookings(false);
+            }
+        };
+
+        fetchUserBookings();
+    }, []);
+
+// Check if current property is booked
+    const isPropertyBooked = userBookings.some(
+        booking => booking.propertyId === id &&
+            (booking.status === 'Pending' || booking.status === 'Confirmed')
+    );
 
     const handleAddReview = async () => {
         if (!newReview.trim()) {
@@ -443,13 +469,27 @@ const Property = () => {
                         </Text>
                     </View>
 
-                    <TouchableOpacity className="flex-1 flex flex-row items-center justify-center bg-primary-300 py-3 rounded-full shadow-md shadow-zinc-400">
-                        <Text className="text-white text-lg text-center font-rubik-bold">
-                            Book Now
-                        </Text>
+                    <TouchableOpacity
+                        onPress={() => setShowBooking(true)}
+                        disabled={isPropertyBooked || isCheckingBookings}
+                        className={`flex-1 flex flex-row items-center justify-center py-3 rounded-full shadow-md shadow-zinc-400 ${
+                            isPropertyBooked || isCheckingBookings
+                                ? "bg-gray-300"
+                                : "bg-primary-300"
+                        }`}
+                    >
+                        {isCheckingBookings ? (
+                            <ActivityIndicator color="#ffffff" />
+                        ) : (
+                            <Text className="text-white text-lg text-center font-rubik-bold">
+                                {isPropertyBooked ? "Already Booked" : "Book Now"}
+                            </Text>
+                        )}
                     </TouchableOpacity>
                 </View>
             </View>
+
+                <BookingDrawer visible={showBooking} onClose={() => setShowBooking(false)} property={property} />
         </View>
         </KeyboardAvoidingView>
     );
