@@ -2,13 +2,14 @@ import {ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View} from "
 import {SafeAreaView} from "react-native-safe-area-context";
 import icons from "@/constants/icons";
 import Search from "@/components/Search";
-import {Card, FeaturedCard} from "@/components/Cards";
+import {Card} from "@/components/Cards";
 import Filters from "@/components/Filters";
 import {router, useLocalSearchParams} from "expo-router";
 import {useAppwrite} from "@/lib/useAppwrite";
-import {getLatestProperties, getProperties} from "@/lib/appwrite";
+import {getProperties} from "@/lib/appwrite";
 import {useEffect} from "react";
 import NoResults from "@/components/NoResults";
+import {NotificationBell} from "@/components/NotificationBell";
 
 export default function Explore() {
 
@@ -84,9 +85,7 @@ export default function Explore() {
 
                             <Text className="text-base mr-2 text-center font-rubik-medium text-black-300">Search for Your Ideal Home</Text>
 
-                            <TouchableOpacity onPress={() => router.push("/notifications")}>
-                                <Image source={icons.bell} className="size-5" />
-                            </TouchableOpacity>
+                            <NotificationBell />
                         </View>
                         <Search />
 
