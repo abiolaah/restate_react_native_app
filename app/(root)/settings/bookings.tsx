@@ -20,19 +20,14 @@ interface MarkedDatesProps{
     }
 }
 
-const statusColors = {
-    Pending: 'bg-yellow-100 text-yellow-800',
-    Confirmed: 'bg-green-100 text-green-800',
-    Cancelled: 'bg-red-100 text-red-800',
-    Completed: 'bg-blue-100 text-blue-800'
-};
-
 const Bookings = () => {
     const { data: bookings, loading, refetch } = useAppwrite<Booking[]>({
         fn:  getUserBookings
     });
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
     const [selectedDayBookings, setSelectedDayBookings] = useState<Booking[]>([]);
+
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     if (loading) {
         return (
@@ -41,6 +36,10 @@ const Bookings = () => {
             </View>
         );
     }
+
+    // Get today's date in YYYY-MM-DD format
+    const now = new Date();
+    const todayString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 
     const markedDates: MarkedDatesProps = bookings?.reduce((acc: MarkedDatesProps, booking) => {
         const date = formatDateForDisplay(booking.date) // Format date as YYYY-MM-DD
@@ -62,12 +61,18 @@ const Bookings = () => {
     const handleDayPress = (day: DateData) => {
         // Use the exact date string from the calendar (YYYY-MM-DD format)
         const selectedDateString = day.dateString;
+        setSelectedDate(selectedDateString);
         const dayBookings = bookings?.filter(booking => {
             const bookingDate = formatDateForDisplay(booking.date);
             return bookingDate === selectedDateString;
         }) || [];
         setSelectedDayBookings(dayBookings);
     }
+
+    // Show TodaysBookings only when no date is selected or when today is selected
+    const shouldShowTodaysBookings = selectedDate === null || selectedDate === todayString;
+    // Show DayBookingList only when a date is selected and it's not today
+    const shouldShowDayBookingList = selectedDate !== null && selectedDate !== todayString && selectedDayBookings.length > 0;
 
     // Custom Pressable component to avoid navigation context issues
     const ViewModeButton = ({
@@ -96,7 +101,7 @@ const Bookings = () => {
             <View className="flex flex-row justify-between items-center mb-4">
                 <View className="flex flex-row items-center gap-6">
                     <TouchableOpacity
-                        onPress={() => router.back()}
+                        onPress={() => router.push('/profile')}
                         className="p-2"
                     >
                         <Image source={icons.backArrow} className="size-6" />
@@ -137,7 +142,7 @@ const Bookings = () => {
                     refreshing={loading}
                     onRefresh={refetch}
                     renderItem={({ item }) => (
-                        <BookingItem booking={item} onPress={() => item.propertyId && router.push(`/properties/${item.propertyId}`)} />
+                        <BookingItem booking={item} onPress={() => item.propertyId && router.push(`/properties/${item.propertyId}`)} onUpdate={refetch} />
                     )}
                 />
             ) : (
@@ -169,7 +174,7 @@ const Bookings = () => {
                     />
 
                     {/* Selected Day's Bookings (replaces the modal) */}
-                    {selectedDayBookings.length > 0 && (
+                    {shouldShowDayBookingList && (
                         <View className="mt-4 p-4 bg-gray-50 rounded-lg">
                             <Text className="text-lg font-bold mb-2">
                                 Bookings for {selectedDayBookings[0].date.split('T')[0]}
@@ -182,7 +187,7 @@ const Bookings = () => {
                     )}
 
                     {/* Today's bookings sections*/}
-                    <TodaysBookings bookings={bookings} />
+                    {shouldShowTodaysBookings && <TodaysBookings bookings={bookings} />}
                 </View>
             )}
         </SafeAreaView>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput } from 'react-native';
 import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import { useGlobalContext } from '@/lib/global-provider';
-import { createBooking } from '@/lib/appwrite';
+import {createBooking, updateBooking} from '@/lib/appwrite';
 import Toast from "react-native-toast-message";
 
 const timeSlots = [
@@ -14,11 +14,15 @@ const timeSlots = [
 export default function BookingDrawer({
                                           visible,
                                           onClose,
-                                          property
+                                          property,
+                                          isReschedule = false,
+                                          bookingToReschedule = null
                                       }: {
     visible: boolean;
     onClose: () => void;
-    property: any;
+    property?: any;
+    isReschedule?: boolean;
+    bookingToReschedule?: Booking | null;
 }) {
     const { user } = useGlobalContext();
     const [date, setDate] = useState(new Date());
@@ -48,41 +52,56 @@ export default function BookingDrawer({
             return;
         }
 
-        if (!property?.agent?.$id) {
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'Property agent information is missing'
-            });
-            return;
-        }
-
-        if (!user?.$id) {
-            Toast.show({
-                type: 'error',
-                text1: 'Error',
-                text2: 'User not authenticated'
-            });
-            return;
-        }
-
         setLoading(true);
         try {
             // Format the date as YYYY-MM-DD without timezone conversion
             const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
 
-            await createBooking({
-                propertyId: property.$id,
-                agentId: property.agent.$id,
-                date: formattedDate,
-                time,
-                notes: notes || undefined
-            });
-            Toast.show({
-                type: 'success',
-                text1: 'Success',
-                text2: 'Booking request sent!'
-            });
+            if (isReschedule && bookingToReschedule) {
+                // Update existing booking
+                await updateBooking(bookingToReschedule.$id, {
+                    date: formattedDate,
+                    time,
+                    notes: notes || bookingToReschedule.notes,
+                    status: 'Pending' // Reset status to Pending for approval
+                });
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Booking rescheduled!'
+                });
+            } else {
+                if (!property?.agent?.$id) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'Property agent information is missing'
+                    });
+                    return;
+                }
+
+                if (!user?.$id) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error',
+                        text2: 'User not authenticated'
+                    });
+                    return;
+                }
+                await createBooking({
+                    propertyId: property.$id,
+                    agentId: property.agent.$id,
+                    date: formattedDate,
+                    time,
+                    notes: notes || undefined
+                });
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Booking request sent!'
+                });
+            }
+
 
             //Reset form
             setDate(new Date());
@@ -94,7 +113,7 @@ export default function BookingDrawer({
             Toast.show({
                 type: 'error',
                 text1: 'Error',
-                text2: 'Failed to create booking'
+                text2: isReschedule ? 'Failed to reschedule booking' : 'Failed to create booking'
             });
         } finally {
             setLoading(false);

@@ -1,6 +1,13 @@
 import {View, Text, TouchableOpacity} from "react-native";
 import {router} from "expo-router";
-import {formatLocalDate} from "@/lib/timezone-converter";
+import React from "react";
+
+const statusColors = {
+    Pending: 'bg-yellow-100 text-yellow-800',
+    Confirmed: 'bg-green-100 text-green-800',
+    Cancelled: 'bg-red-100 text-red-800',
+    Completed: 'bg-blue-100 text-blue-800'
+};
 
 export const TodaysBookings = ({ bookings }: { bookings: Booking[] }) => {
     const now = new Date();
@@ -27,11 +34,21 @@ export const TodaysBookings = ({ bookings }: { bookings: Booking[] }) => {
                         }
                     }}
                 >
-                    <Text className="font-semibold">
-                        {booking.property?.name || 'Property'}
+                    <View className="flex-row justify-between">
+                        <Text className="text-lg font-bold flex-1">
+                            {booking.property?.name || 'Property No Longer Available'}
+                        </Text>
+                        <View className={`px-2 py-1 rounded-full ${statusColors[booking.status]}`}>
+                            <Text className="text-xs font-semibold capitalize">
+                                {booking.status}
+                            </Text>
+                        </View>
+                    </View>
+                    <Text className="text-gray-600 mt-1">
+                        Agent: {booking.agent?.name || 'Agent'}
                     </Text>
-                    <Text className="text-gray-600">
-                        {formatLocalDate(booking.date)} - {booking.time} ({booking.status})
+                    <Text className="text-gray-600 mt-1">
+                        {booking.time}
                     </Text>
                 </TouchableOpacity>
             ))}

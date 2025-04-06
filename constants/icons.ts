@@ -25,6 +25,8 @@ import chat from "@/assets/icons/chat.png";
 import phone from "@/assets/icons/phone.png";
 import carPark from "@/assets/icons/car-park.png";
 import cutlery from "@/assets/icons/cutlery.png";
+import chevronDown from "@/assets/icons/down-chevron.png";
+import chevronUp from "@/assets/icons/up-arrows.png";
 import dog from "@/assets/icons/dog.png";
 import dumbell from "@/assets/icons/dumbell.png";
 import laundry from "@/assets/icons/laundry.png";
@@ -33,6 +35,8 @@ import swim from "@/assets/icons/swim.png";
 import wifi from "@/assets/icons/wifi.png";
 import location from "@/assets/icons/location.png";
 import edit from "@/assets/icons/edit.png";
+import message from "@/assets/icons/messenger.png";
+import email from "@/assets/icons/email.png";
 
 export default {
   google,
@@ -53,6 +57,8 @@ export default {
   shield,
   wallet,
   rightArrow,
+  message,
+  email,
   send,
   bed,
   bath,
@@ -61,6 +67,8 @@ export default {
   phone,
   carPark,
   cutlery,
+  chevronDown,
+  chevronUp,
   dog,
   dumbell,
   heartFill,
