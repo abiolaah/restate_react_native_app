@@ -1,8 +1,7 @@
 // app/(tabs)/notifications.tsx
-import { View, Text, FlatList, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useNotifications } from '@/lib/notification-context';
 import { format } from 'date-fns';
-import icons from '@/constants/icons';
 import { router } from 'expo-router';
 import {SafeAreaView} from "react-native-safe-area-context";
 
@@ -15,9 +14,9 @@ export default function NotificationsScreen() {
                 <View className="flex-row items-center justify-between px-4 pt-4">
                     <Text className="text-2xl font-rubik-bold">Notifications</Text>
                     {unreadCount > 0 && (
-                        <Pressable onPress={clearAll} className="px-3 py-1 bg-primary-100 rounded-full">
+                        <TouchableOpacity onPress={clearAll} className="px-3 py-1 bg-primary-100 rounded-full">
                             <Text className="text-primary-500 font-rubik-medium">Mark all as read</Text>
-                        </Pressable>
+                        </TouchableOpacity>
                     )}
                 </View>
 
@@ -38,7 +37,7 @@ export default function NotificationsScreen() {
                                         router.push(`/properties/${item.relatedId}`);
                                     }
                                 }}
-                                className={`p-4 mb-3 rounded-xl ${item.read ? 'bg-white' : 'bg-blue-50 border-l-4 border-primary-500'}`}
+                                className={`p-4 mb-3 rounded-xl ${item.read ? 'bg-green-50 border-l-4 border-green-400' : 'bg-blue-50 border-l-4 border-primary-300'}`}
                             >
                                 <View className="flex-row justify-between">
                                     <Text className={`font-rubik-medium ${item.read ? 'text-gray-800' : 'text-black'}`}>
