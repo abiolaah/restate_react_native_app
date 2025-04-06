@@ -13,6 +13,7 @@ import info from "@/assets/icons/info.png";
 import language from "@/assets/icons/language.png";
 import logout from "@/assets/icons/logout.png";
 import list from "@/assets/icons/list.png";
+import like from "@/assets/icons/like.png";
 import people from "@/assets/icons/people.png";
 import shield from "@/assets/icons/shield.png";
 import wallet from "@/assets/icons/wallet.png";
@@ -47,6 +48,7 @@ export default {
   filter,
   star,
   heart,
+  like,
   backArrow,
   calendar,
   info,
