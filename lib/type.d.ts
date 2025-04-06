@@ -25,3 +25,21 @@ interface Booking {
         avatar: string;
     } | null;
 }
+
+interface NotificationProps {
+    id: string;
+    title: string;
+    message: string;
+    type: 'booking' | 'message' | 'system';
+    relatedId?: string;
+    read: boolean;
+    createdAt: Date;
+}
+
+// Simplified input type for creating notifications
+type NotificationInput = {
+    title: string;
+    message: string;
+    type: 'booking' | 'message' | 'system';
+    relatedId?: string;
+};

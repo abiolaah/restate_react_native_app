@@ -6,6 +6,7 @@ import {settings} from "@/constants/data";
 import {useGlobalContext} from "@/lib/global-provider";
 import {logout} from "@/lib/appwrite";
 import {router} from "expo-router";
+import {NotificationBell} from "@/components/NotificationBell";
 
 interface SettingsItemProps {
     icon: ImageSourcePropType;
@@ -35,7 +36,7 @@ const Profile = () => {
 
         if(result){
             Alert.alert("Success", "You have been logged out successfully!");
-            refetch();
+            await refetch();
         } else {
             Alert.alert("Error", "An error occurred while logging out");
         }
@@ -48,7 +49,7 @@ const Profile = () => {
             >
                 <View className="flex flex-row items-center justify-between mt-5">
                     <Text className="text-xl font-rubik-bold">Profile</Text>
-                    <Image source={icons.bell} className="size-5" />
+                    <NotificationBell />
                 </View>
 
                 <View className="flex-row justify-center flex mt-5">
@@ -65,7 +66,7 @@ const Profile = () => {
 
                 <View className="flex flex-col mt-10">
                     <SettingsItem icon={icons.calendar} title="My Bookings" onPress={()=> router.push('/settings/bookings')}/>
-                    <SettingsItem icon={icons.wallet} title="Payments"/>
+                    <SettingsItem icon={icons.person} title="Profile" onPress={() =>  router.push('/settings/profile-details')}/>
                 </View>
 
                 <View className="flex flex-col mt-5 border-t pt-5 border-primary-200">
@@ -74,10 +75,6 @@ const Profile = () => {
                             key={index}
                             {...item}
                             onPress={() => {
-                                if (item.title === "Profile") {
-                                    router.push('/settings/profile-details')
-                                }
-
                                 if (item.title === "Help Center") {
                                     router.push('/settings/help-center')
                                 }

@@ -73,32 +73,20 @@ export const settings = [
     icon: icons.calendar,
   },
   {
-    title: "Payments",
-    icon: icons.wallet,
-  },
-  {
     title: "Profile",
     icon: icons.person,
   },
   {
-    title: "Notifications",
-    icon: icons.bell,
+    title: "Favourites",
+    icon: icons.like,
   },
   {
-    title: "Security",
-    icon: icons.shield,
-  },
-  {
-    title: "Language",
-    icon: icons.language,
+    title: "Chats",
+    icon: icons.message,
   },
   {
     title: "Help Center",
     icon: icons.info,
-  },
-  {
-    title: "Invite Friends",
-    icon: icons.people,
   },
 ];
 

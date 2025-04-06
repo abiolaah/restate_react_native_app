@@ -1,10 +1,10 @@
 import {TouchableOpacity, View, Text, Alert} from "react-native";
 import {formatDateForListDisplay} from "@/lib/timezone-converter";
-import {useGlobalContext} from "@/lib/global-provider";
 import Toast from "react-native-toast-message";
 import {updateBooking} from "@/lib/appwrite";
 import {useState} from "react";
 import BookingDrawer from "@/components/BookingDrawer";
+import {useNotifications} from "@/lib/notification-context";
 
 const statusColors = {
     Pending: 'bg-yellow-100 text-yellow-800',
@@ -14,8 +14,8 @@ const statusColors = {
 };
 
 export const BookingItem = ({ booking, onPress, onUpdate }: { booking: Booking; onPress: () => void; onUpdate: () => void; }) => {
-    const { user } = useGlobalContext();
     const [showReschedule, setShowReschedule] = useState(false);
+    const { addNotification } = useNotifications();
 
 
     const canModifyBooking = () => {
@@ -60,6 +60,12 @@ export const BookingItem = ({ booking, onPress, onUpdate }: { booking: Booking; 
                                 text2: "Booking has been cancelled"
                             })
                             onUpdate();
+                            addNotification({
+                                title: 'Cancelled Booking',
+                                message: `Your booking for ${booking.property?.name} on ${booking.date} at ${booking.time} has been cancelled`,
+                                type: "booking",
+                                relatedId: booking.propertyId
+                            });
                         } catch (error) {
                             Toast.show({
                                 type: "error",
@@ -129,6 +135,7 @@ export const BookingItem = ({ booking, onPress, onUpdate }: { booking: Booking; 
                         <BookingDrawer
                             visible={showReschedule}
                             onClose={() => setShowReschedule(false)}
+                            onUpdate={onUpdate}
                             property={booking.property}
                             isReschedule={true}
                             bookingToReschedule={booking}

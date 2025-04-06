@@ -33,7 +33,6 @@ const Property = () => {
     const [isAllComments, setAllComments] = useState(false);
     const [reviews, setReviews] = useState<any[]>([]);
     const [keyboardOffset, setKeyboardOffset] = useState(0);
-    const [scrollOffset, setScrollOffset] = useState(100); // Default offset of 100px
 
     const [showBooking, setShowBooking] = useState(false);
     const [userBookings, setUserBookings] = useState<Booking[]>([]);
@@ -145,7 +144,7 @@ const Property = () => {
                 // Fallback for older RN versions
                 reviewsSectionRef.current.measureLayout(
                     scrollNode,
-                    (x, y) => {
+                    ( y) => {
                         scrollViewRef.current?.scrollTo({
                             y: y - 100, // Adjust offset as needed
                             animated: true
@@ -240,7 +239,7 @@ const Property = () => {
                             </View>
                         </View>
 
-                        {/*Basic Property Info e.g area, beds and bath*/}
+                        {/*Basic Property Info, examples are: area, beds and bath*/}
                         <View className="flex flex-row items-center mt-5">
                             <View className="flex flex-row items-center justify-center bg-primary-100 rounded-full size-10">
                                 <Image source={icons.bed} className="size-4" />
@@ -482,14 +481,14 @@ const Property = () => {
                             <ActivityIndicator color="#ffffff" />
                         ) : (
                             <Text className="text-white text-lg text-center font-rubik-bold">
-                                {isPropertyBooked ? "Already Booked" : "Book Now"}
+                                {isPropertyBooked ? "Booked" : "Book Now"}
                             </Text>
                         )}
                     </TouchableOpacity>
                 </View>
             </View>
 
-                <BookingDrawer visible={showBooking} onClose={() => setShowBooking(false)} property={property} />
+                <BookingDrawer visible={showBooking} onClose={() => setShowBooking(false)} property={property} onUpdate={refetch} />
         </View>
         </KeyboardAvoidingView>
     );

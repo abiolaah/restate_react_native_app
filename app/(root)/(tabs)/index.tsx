@@ -1,6 +1,5 @@
 import {ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
-import icons from "@/constants/icons";
 import Search from "@/components/Search";
 import {Card, FeaturedCard} from "@/components/Cards";
 import Filters from "@/components/Filters";
@@ -10,6 +9,7 @@ import {useAppwrite} from "@/lib/useAppwrite";
 import {getLatestProperties, getProperties} from "@/lib/appwrite";
 import {useEffect} from "react";
 import NoResults from "@/components/NoResults";
+import {NotificationBell} from "@/components/NotificationBell";
 
 export default function Index() {
     const {user} = useGlobalContext();
@@ -92,7 +92,7 @@ export default function Index() {
                             </View>
                         </View>
 
-                        <Image source={icons.bell} className="size-6" />
+                        <NotificationBell />
                     </View>
 
                     <Search />

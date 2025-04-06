@@ -5,6 +5,8 @@ import {useFonts} from "expo-font";
 import {useEffect} from "react";
 import GlobalProvider from "@/lib/global-provider";
 import Toast from "react-native-toast-message";
+import {NotificationProvider} from "@/lib/notification-context";
+import * as Notifications from 'expo-notifications';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -25,9 +27,11 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-      <GlobalProvider>
-        <Stack screenOptions={{headerShown: false}} />
-        <Toast />
-      </GlobalProvider>
+      <NotificationProvider>
+        <GlobalProvider>
+          <Stack screenOptions={{headerShown: false}} />
+          <Toast />
+        </GlobalProvider>
+      </NotificationProvider>
   );
 }
