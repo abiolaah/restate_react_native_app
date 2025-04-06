@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, TextInput } from 'react-native';
+import {View, Text, Modal, TouchableOpacity, TextInput, Image} from 'react-native';
 import DateTimePicker, {DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import { useGlobalContext } from '@/lib/global-provider';
 import {createBooking, updateBooking} from '@/lib/appwrite';
 import Toast from "react-native-toast-message";
+import {useNotifications} from "@/lib/notification-context";
+import icons from "@/constants/icons";
 
 const timeSlots = [
     '09:00', '10:00', '11:00',
@@ -14,13 +16,15 @@ const timeSlots = [
 export default function BookingDrawer({
                                           visible,
                                           onClose,
+                                          onUpdate,
                                           property,
                                           isReschedule = false,
                                           bookingToReschedule = null
                                       }: {
     visible: boolean;
-    onClose: () => void;
     property?: any;
+    onClose: () => void;
+    onUpdate: () => void;
     isReschedule?: boolean;
     bookingToReschedule?: Booking | null;
 }) {
@@ -31,6 +35,8 @@ export default function BookingDrawer({
     const [showDatePicker, setShowDatePicker] = useState(true);
     const [dateSelected, setDateSelected] = useState(false); // Track if date has been selected
     const [loading, setLoading] = useState(false);
+
+    const { addNotification } = useNotifications();
 
     const handleDateSelect = (event:DateTimePickerEvent, selectedDate: Date | undefined) => {
 
@@ -70,6 +76,12 @@ export default function BookingDrawer({
                     text1: 'Success',
                     text2: 'Booking rescheduled!'
                 });
+                addNotification({
+                    title: 'Reschedule Request Sent',
+                    message: `Your reschedule request for ${property.name} on ${formattedDate} at ${time} has been submitted`,
+                    type: "booking",
+                    relatedId: property.$id
+                });
             } else {
                 if (!property?.agent?.$id) {
                     Toast.show({
@@ -100,6 +112,13 @@ export default function BookingDrawer({
                     text1: 'Success',
                     text2: 'Booking request sent!'
                 });
+
+                addNotification({
+                    title: 'Booking Requested',
+                    message: `Your viewing request for property ${property.name} on ${formattedDate} at ${time} has been sent to ${property.agent.name}`,
+                    type: "booking",
+                    relatedId: property.$id
+                });
             }
 
 
@@ -108,6 +127,7 @@ export default function BookingDrawer({
             setTime('');
             setNotes('');
             setDateSelected(false);
+            onUpdate();
             onClose();
         } catch (error) {
             Toast.show({
@@ -132,7 +152,15 @@ export default function BookingDrawer({
         >
             <View className="flex-1 justify-end bg-black/50">
                 <View className="bg-white p-6 rounded-t-3xl">
-                    <Text className="text-2xl font-bold mb-4">Schedule Viewing</Text>
+                    <View className="flex flex-row items-center justify-between gap-2">
+                        <TouchableOpacity onPress={onClose}>
+                            <Image source={icons.backArrow} className="size-5" />
+                        </TouchableOpacity>
+                        <Text className="text-2xl font-bold mb-4">Schedule Viewing</Text>
+                        <TouchableOpacity onPress={onClose}>
+                            <Text className="text-base font-rubik text-primary-300">Done</Text>
+                        </TouchableOpacity>
+                    </View>
 
                     {/* Step 1: Date Selection */}
                     {!dateSelected && (
