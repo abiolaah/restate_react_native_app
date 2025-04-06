@@ -100,7 +100,7 @@ export default function Index() {
                     <View className="my-5">
                         <View className="flex flex-row items-center justify-between">
                             <Text className="text-xl font-rubik-bold text-black-300">Featured</Text>
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={() => router.push('/explore')}>
                                 <Text className="text-base font-rubik-bold text-primary-300">See All</Text>
                             </TouchableOpacity>
                         </View>
@@ -125,7 +125,7 @@ export default function Index() {
 
                     <View className="flex flex-row items-center justify-between">
                         <Text className="text-xl font-rubik-bold text-black-300">Our Recommendation</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.push('/explore')}>
                             <Text className="text-base font-rubik-bold text-primary-300">See All</Text>
                         </TouchableOpacity>
                     </View>
