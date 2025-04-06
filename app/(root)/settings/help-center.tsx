@@ -3,6 +3,8 @@ import React, {useState} from 'react'
 import {SafeAreaView} from "react-native-safe-area-context";
 import { router } from "expo-router";
 import icons from "@/constants/icons";
+import * as MailComposer from 'expo-mail-composer';
+import Toast from "react-native-toast-message";
 
 // Sample FAQ data for real estate app
 const faqs = [
@@ -30,12 +32,63 @@ const faqs = [
 
 const HelpCenter = () => {
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+    const [isSending, setIsSending] = useState(false);
 
     const toggleAccordion = (index: number) => {
         setExpandedIndex(expandedIndex === index ? null : index);
+    };
+
+    const handleSendMessage = async () => {
+        if (!name.trim() || !message.trim()) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Please fill in all fields',
+            })
+            return;
+        }
+
+        setIsSending(true);
+
+        try {
+            const isAvailable = await MailComposer.isAvailableAsync();
+
+            if (!isAvailable) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error',
+                    text2: 'Email services are not available on this device',
+                })
+                return;
+            }
+
+            const result = await MailComposer.composeAsync({
+                recipients: ['oluwapelumivictoriaajuwon@gmail.com'],
+                subject: `Support Request from ${name}`,
+                body: `Name: ${name}\n\nMessage:\n${message}`,
+            });
+
+            if (result.status === 'sent') {
+                Toast.show({
+                    type: 'success',
+                    text1: 'Success',
+                    text2: 'Your message has been sent successfully!'
+                });
+                setName('');
+                setMessage('');
+            }
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Failed to send message. Please try again later.',
+            })
+            console.error('Error sending email:', error);
+        } finally {
+            setIsSending(false);
+        }
     };
 
     return (
@@ -43,7 +96,7 @@ const HelpCenter = () => {
             {/*Header*/}
             <View className="flex flex-row items-center gap-6 py-4">
                 <TouchableOpacity
-                    onPress={() => router.back()}
+                    onPress={() => router.push('/profile')}
                     className="p-2"
                 >
                     <Image source={icons.backArrow} className="size-6" />
@@ -104,17 +157,6 @@ const HelpCenter = () => {
                         </View>
 
                         <View>
-                            <Text className="text-base font-rubik-medium text-gray-800 mb-2">Email</Text>
-                            <TextInput
-                                className="border border-gray-200 rounded-lg p-4 font-rubik-regular bg-gray-50"
-                                value={email}
-                                onChangeText={setEmail}
-                                placeholder="Your email address"
-                                keyboardType="email-address"
-                            />
-                        </View>
-
-                        <View>
                             <Text className="text-base font-rubik-medium text-gray-800 mb-2">Message</Text>
                             <TextInput
                                 className="border border-gray-200 rounded-lg p-4 font-rubik-regular bg-gray-50 min-h-[120px]"
@@ -127,9 +169,15 @@ const HelpCenter = () => {
                         </View>
 
                         <TouchableOpacity
+                            onPress={handleSendMessage}
                             className="mt-2 rounded-lg bg-primary-300 h-14 justify-center items-center shadow-sm"
+                            disabled={isSending}
                         >
-                            <Text className="text-white font-rubik-medium text-lg">Send Message</Text>
+                            {isSending ? (
+                                <Text className="text-white font-rubik-medium text-lg">Sending...</Text>
+                            ) : (
+                                <Text className="text-white font-rubik-medium text-lg">Send Message</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </View>
