@@ -4,8 +4,6 @@ import icons from "@/constants/icons";
 import Search from "@/components/Search";
 import {Card, FeaturedCard} from "@/components/Cards";
 import Filters from "@/components/Filters";
-import {useGlobalContext} from "@/lib/global-provider";
-import seed from "@/lib/seed";
 import {router, useLocalSearchParams} from "expo-router";
 import {useAppwrite} from "@/lib/useAppwrite";
 import {getLatestProperties, getProperties} from "@/lib/appwrite";
@@ -86,7 +84,9 @@ export default function Explore() {
 
                             <Text className="text-base mr-2 text-center font-rubik-medium text-black-300">Search for Your Ideal Home</Text>
 
-                            <Image source={icons.bell} className="w-6 h-6" />
+                            <TouchableOpacity onPress={() => router.push("/notifications")}>
+                                <Image source={icons.bell} className="size-5" />
+                            </TouchableOpacity>
                         </View>
                         <Search />
 

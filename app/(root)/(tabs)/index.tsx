@@ -92,7 +92,9 @@ export default function Index() {
                             </View>
                         </View>
 
-                        <Image source={icons.bell} className="size-6" />
+                        <TouchableOpacity onPress={() => router.push("/notifications")}>
+                            <Image source={icons.bell} className="size-5" />
+                        </TouchableOpacity>
                     </View>
 
                     <Search />

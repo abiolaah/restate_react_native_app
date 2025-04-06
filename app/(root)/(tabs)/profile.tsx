@@ -48,7 +48,9 @@ const Profile = () => {
             >
                 <View className="flex flex-row items-center justify-between mt-5">
                     <Text className="text-xl font-rubik-bold">Profile</Text>
-                    <Image source={icons.bell} className="size-5" />
+                    <TouchableOpacity onPress={() => router.push("/notifications")}>
+                        <Image source={icons.bell} className="size-5" />
+                    </TouchableOpacity>
                 </View>
 
                 <View className="flex-row justify-center flex mt-5">
