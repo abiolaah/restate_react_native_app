@@ -1,86 +1,86 @@
-// lib/notification-context.tsx
+// lib/favourites-context.tsx
 import React, {createContext, useState, useContext, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-type NotificationContextType = {
-    notifications: NotificationProps[];
-    addNotification: (notification: NotificationInput) => void;
-    markAsRead: (id: string) => void;
-    unreadCount: number;
-    clearAll: () => void;
+type FavouriteContextType = {
+    favourites: FavouritesProps[];
+    addToFavourites: (property: PropertyProps) => void;
+    removeFromFavourites: (propertyId: string) => void;
+    isInFavourites: (propertyId: string) => boolean;
 };
 
-const STORAGE_KEY = 'app_notifications';
+const STORAGE_KEY = 'my_favourites';
 
-const NotificationContext = createContext<NotificationContextType>({
-    notifications: [],
-    addNotification: () => {},
-    markAsRead: () => {},
-    unreadCount: 0,
-    clearAll: () => {},
+const FavouriteContext = createContext<FavouriteContextType>({
+    favourites: [],
+    addToFavourites: () => {},
+    removeFromFavourites: () => {},
+    isInFavourites: () => false,
 });
 
-export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
-    const [notifications, setNotifications] = useState<NotificationProps[]>([]);
+export const FavouritesProvider = ({ children }: { children: React.ReactNode }) => {
+    const [favourites, setFavourites] = useState<FavouritesProps[]>([]);
 
     // Load notifications from storage on mount
     useEffect(() => {
-        const loadNotifications = async () => {
+        const loadFavourites = async () => {
             try {
                 const stored = await AsyncStorage.getItem(STORAGE_KEY);
                 if (stored) {
-                    setNotifications(JSON.parse(stored));
+                    setFavourites(JSON.parse(stored));
                 }
             } catch (error) {
                 console.error('Failed to load notifications', error);
             }
         };
-        loadNotifications();
+        loadFavourites();
     }, []);
 
     // Save to storage whenever notifications change
     useEffect(() => {
-        const saveNotifications = async () => {
+        const saveFavourites = async () => {
             try {
-                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(favourites));
             } catch (error) {
                 console.error('Failed to save notifications', error);
             }
         };
-        saveNotifications();
-    }, [notifications]);
+        saveFavourites();
+    }, [favourites]);
 
-    const addNotification = (notification: NotificationInput) => {
-        const newNotification: NotificationProps = {
-            ...notification,
-            id: Math.random().toString(36).substring(2, 9),
-            createdAt: new Date(),
-            read: false,
-        };
-
-        setNotifications(prev => [newNotification, ...prev]);
-
+    const addToFavourites = (property: PropertyProps) => {
+        setFavourites(prev => {
+            // Check if property already exists in wishlist
+            const exists = prev.some(item => item.property.$id === property.$id);
+            if (!exists) {
+                return [
+                    ...prev,
+                    {
+                        id: Math.random().toString(36).substring(7),
+                        property,
+                        createdAt: new Date()
+                    }
+                ];
+            }
+            return prev;
+        });
     };
 
-    const markAsRead = (id: string) => {
-        setNotifications(prev =>
-            prev.map(n => (n.id === id ? { ...n, read: true } : n))
-        );
-    };
+   const removeFromFavourites =  (propertyId: string) => {
+       setFavourites(prev => prev.filter(item => item.property.$id !== propertyId));
+   }
 
-    const clearAll = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    };
-
-    const unreadCount = notifications.filter(n => !n.read).length;
+   const isInFavourites = (propertyId: string) => {
+       return favourites.some(item => item.property.$id === propertyId);
+   }
 
     return (
-        <NotificationContext.Provider
-            value={{ notifications, addNotification, markAsRead, unreadCount, clearAll }}
+        <FavouriteContext.Provider
+            value={{ favourites, addToFavourites, removeFromFavourites, isInFavourites}}
         >
             {children}
-        </NotificationContext.Provider>
+        </FavouriteContext.Provider>
     );
 };
 
-export const useNotifications = () => useContext(NotificationContext);
+export const useFavourites = () => useContext(FavouriteContext);
