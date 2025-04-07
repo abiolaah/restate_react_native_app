@@ -36,6 +36,9 @@ export const ShareModal = ({visible, onClose}: {visible: boolean; onClose: () =>
                 visibilityTime: 2000
             });
         }
+        finally {
+            onClose();
+        }
     };
 
     return (
