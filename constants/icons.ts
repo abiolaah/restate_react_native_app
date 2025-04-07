@@ -39,6 +39,7 @@ import edit from "@/assets/icons/edit.png";
 import message from "@/assets/icons/messenger.png";
 import email from "@/assets/icons/email.png";
 import property from "@/assets/icons/real-estate.png";
+import close from "@/assets/icons/close.png";
 
 export default {
   google,
@@ -82,4 +83,5 @@ export default {
   location,
   edit,
   property,
+  close,
 };
