@@ -2,8 +2,12 @@ import {View, Text, Modal, TouchableOpacity, Share, Image} from 'react-native'
 import React from 'react'
 import Toast from "react-native-toast-message";
 import icons from "@/constants/icons";
+import * as Clipboard from 'expo-clipboard';
 
 export const ShareModal = ({visible, onClose}: {visible: boolean; onClose: () => void}) => {
+
+    const shareUrl = 'https://github.com/abiolaah/restate_react_native_app/blob/main/README.md';
+
     const handleShare = async () => {
         try {
             await Share.share({
@@ -16,13 +20,22 @@ export const ShareModal = ({visible, onClose}: {visible: boolean; onClose: () =>
         }
     };
 
-    const handleCopy = () => {
-        // Add actual copy functionality here
-        Toast.show({
-            type: 'success',
-            text1: 'Copied to clipboard'
-        });
-        onClose();
+    const handleCopy = async () => {
+        try {
+            await Clipboard.setStringAsync(shareUrl);
+            Toast.show({
+                type: 'success',
+                text1: 'Link copied to clipboard!',
+                visibilityTime: 2000
+            });
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to copy link',
+                text2: 'Please try again',
+                visibilityTime: 2000
+            });
+        }
     };
 
     return (
