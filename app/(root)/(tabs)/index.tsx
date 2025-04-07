@@ -66,6 +66,23 @@ export default function Index() {
         });
     }, [params.filter, params.query, params.minPrice, params.maxPrice, params.types, params.minBedrooms, params.minBathrooms, params.minSize, params.maxSize]);
 
+    const getCurrentHour = new Date().getHours();
+
+    let greetings;
+
+    if (getCurrentHour <= 5 && getCurrentHour < 12) {
+        greetings = "Good Morning"
+    }
+    else if (getCurrentHour >= 12 && getCurrentHour < 18) {
+        greetings = "Good Afternoon"
+    }
+    else if (getCurrentHour >= 18) {
+        greetings = "Good Evening"
+    }
+    else {
+        greetings = "Hello"
+    }
+
   return (
     <SafeAreaView className="bg-white h-full">
         <FlatList
@@ -86,8 +103,8 @@ export default function Index() {
                     <View className="flex flex-row items-center justify-between mt-5">
                         <View className="flex flex-row items-center">
                             <Image source={{uri: user?.avatar}} className="size-12 rounded-full"/>
-                            <View className="flex flex-col items-start ml-2 justify-center">
-                                <Text className="text-xs font-rubik text-black-100">Good Morning</Text>
+                            <View className="flex flex-row items-start ml-2 justify-center">
+                                <Text className="text-base font-rubik-medium text-black-300">{greetings}, </Text>
                                 <Text className="text-base font-rubik-medium text-black-300">{user?.displayName || user?.name}</Text>
                             </View>
                         </View>
