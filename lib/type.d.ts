@@ -43,3 +43,17 @@ type NotificationInput = {
     type: 'booking' | 'message' | 'system';
     relatedId?: string;
 };
+
+type PropertyProps = {
+    $id: string;
+    name: string;
+    price: number;
+    image?: string;
+    address?: string;
+}
+
+type FavouritesProps = {
+    id: string;
+    property: PropertyProps;
+    createdAt: Date;
+}

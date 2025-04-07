@@ -7,6 +7,7 @@ import GlobalProvider from "@/lib/global-provider";
 import Toast from "react-native-toast-message";
 import {NotificationProvider} from "@/lib/notification-context";
 import * as Notifications from 'expo-notifications';
+import {FavouritesProvider} from "@/lib/favourite-context";
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -27,11 +28,13 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-      <NotificationProvider>
-        <GlobalProvider>
-          <Stack screenOptions={{headerShown: false}} />
-          <Toast />
-        </GlobalProvider>
-      </NotificationProvider>
+      <GlobalProvider>
+        <NotificationProvider>
+          <FavouritesProvider>
+            <Stack screenOptions={{headerShown: false}} />
+            <Toast />
+          </FavouritesProvider>
+        </NotificationProvider>
+      </GlobalProvider>
   );
 }

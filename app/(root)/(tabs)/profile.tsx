@@ -78,6 +78,9 @@ const Profile = () => {
                                 if (item.title === "Help Center") {
                                     router.push('/settings/help-center')
                                 }
+                                if (item.title === "Favourites") {
+                                    router.push('/settings/favourites')
+                                }
                             }}
                         />
                     ))}

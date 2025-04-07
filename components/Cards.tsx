@@ -3,13 +3,23 @@ import React from 'react'
 import images from "@/constants/images";
 import icons from "@/constants/icons";
 import {Models} from "react-native-appwrite";
+import {useFavourites} from "@/lib/favourite-context";
 
 interface Props {
     item: Models.Document;
     onPress?: () => void;
 }
 
-export const FeaturedCard = ({item: {image, rating, name, address, price}, onPress}: Props) => {
+export const FeaturedCard = ({item: {$id, image, rating, name, address, price}, onPress}: Props) => {
+    const {addToFavourites, removeFromFavourites, isInFavourites} = useFavourites();
+    const isFavourite = isInFavourites($id);
+    const handleFavouritePress = () => {
+        if (isFavourite) {
+            removeFromFavourites($id);
+        } else {
+            addToFavourites({ $id, name, address, price, image });
+        }
+    };
     return (
         <TouchableOpacity onPress={onPress} className="flex flex-col items-start w-60 h-80 relative">
             <Image source={{uri: image}} className="size-full rounded-2xl" />
@@ -30,7 +40,9 @@ export const FeaturedCard = ({item: {image, rating, name, address, price}, onPre
                     <Text className="text-xl font-rubik-extrabold text-white">
                         ${price}
                     </Text>
-                    <Image source={icons.heart} className="size-5" />
+                    <TouchableOpacity onPress={handleFavouritePress}>
+                        <Image source={isFavourite ? icons.heartFill : icons.heart} className={isFavourite ? "size-8" : "size-5"} tintColor={isFavourite ? "#FF0000" : "#FFFFFF"} />
+                    </TouchableOpacity>
                 </View>
             </View>
         </TouchableOpacity>
@@ -38,7 +50,16 @@ export const FeaturedCard = ({item: {image, rating, name, address, price}, onPre
 }
 
 
-export const Card = ({item: {image, rating, name, address, price}, onPress}: Props) => {
+export const Card = ({item: {$id,image, rating, name, address, price}, onPress}: Props) => {
+    const {addToFavourites, removeFromFavourites, isInFavourites} = useFavourites();
+    const isFavourite = isInFavourites($id);
+    const handleFavouritePress = () => {
+        if (isFavourite) {
+            removeFromFavourites($id);
+        } else {
+            addToFavourites({ $id, name, address, price, image });
+        }
+    };
     return (
         <TouchableOpacity onPress={onPress} className="flex-1 w-full mt-4 px-3 py-4 rounded-lg bg-white shadow-lg shadow-black-100/70 relative">
             <View className="flex flex-row items-center absolute px-2 top-5 right-5 bg-white/90 p-1 rounded-full z-50">
@@ -58,8 +79,31 @@ export const Card = ({item: {image, rating, name, address, price}, onPress}: Pro
                     <Text className="text-base font-rubik-bold text-primary-300">
                         ${price}
                     </Text>
-                    <Image source={icons.heart} className="w-5 h-5 mr-2" tintColor="#191d31" />
+                    <TouchableOpacity onPress={handleFavouritePress}>
+                        <Image source={isFavourite ? icons.heartFill : icons.heart} className={isFavourite ? "size-8" : "size-5"} tintColor={isFavourite ? "#FF0000" : "#191d31"} />
+                    </TouchableOpacity>
                 </View>
+            </View>
+        </TouchableOpacity>
+    )
+}
+
+
+export const FavouritesCard = ({item, onPress}: { item: PropertyProps; onPress: () => void; }) => {
+    const { removeFromFavourites} = useFavourites();
+    return (
+        <TouchableOpacity onPress={onPress} className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <View className="relative">
+                <Image source={{uri:item.image}} className="w-full h-40 rounded-t-xl" resizeMode="cover" />
+                <TouchableOpacity onPress={() =>  removeFromFavourites(item.$id)}  className="absolute top-2 right-2 bg-white/80 rounded-full p-2">
+                    <Image source={ icons.heartFill} className="size-5" />
+                </TouchableOpacity>
+            </View>
+
+            <View className="p-3">
+                <Text className="font-rubik-bold text-lg">${item.price.toLocaleString()}</Text>
+                <Text className="font-rubik-medium text-base">{item.name}</Text>
+                <Text className="font-rubik-regular text-gray-500 text-sm">{item.address}</Text>
             </View>
         </TouchableOpacity>
     )
