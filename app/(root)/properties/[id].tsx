@@ -20,6 +20,8 @@ import {createReview, getPropertyById, getUserBookings} from "@/lib/appwrite";
 import {useEffect, useRef, useState} from "react";
 import {useGlobalContext} from "@/lib/global-provider";
 import BookingDrawer from "@/components/BookingDrawer";
+import {useFavourites} from "@/lib/favourite-context";
+import {ShareModal} from "@/components/ShareModal";
 
 const Property = () => {
     const { id } = useLocalSearchParams<{ id?: string }>();
@@ -37,6 +39,11 @@ const Property = () => {
     const [showBooking, setShowBooking] = useState(false);
     const [userBookings, setUserBookings] = useState<Booking[]>([]);
     const [isCheckingBookings, setIsCheckingBookings] = useState(true);
+
+    const {addToFavourites, removeFromFavourites, isInFavourites} = useFavourites();
+    const isFavourite = isInFavourites(id || '');
+
+    const [showShare, setShowShare] = useState(false);
 
 
     // Update your useAppwrite hook usage
@@ -85,6 +92,15 @@ const Property = () => {
 
         fetchUserBookings();
     }, []);
+
+    // Add this type guard at the top of your component
+    if (!property) {
+        return (
+            <View className="flex-1 items-center justify-center">
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
 
 // Check if current property is booked
     const isPropertyBooked = userBookings.some(
@@ -164,6 +180,21 @@ const Property = () => {
         return new Date(b.$createdAt).getTime() - new Date(a.$createdAt).getTime();
     });
 
+
+    const handleFavouritePress =  () => {
+        if (isFavourite) {
+            removeFromFavourites(property.$id);
+        } else {
+            addToFavourites({
+                $id: property?.$id,
+                name: property.name,
+                address: property.address,
+                price: property.price,
+                image: property.image
+            });
+        }
+    }
+
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -203,12 +234,16 @@ const Property = () => {
                                 </TouchableOpacity>
 
                                 <View className="flex flex-row items-center gap-3">
-                                    <Image
-                                        source={icons.heart}
-                                        className="size-7"
-                                        tintColor={"#191D31"}
-                                    />
-                                    <Image source={icons.send} className="size-7" />
+                                    <TouchableOpacity onPress={handleFavouritePress}>
+                                        <Image
+                                            source={isFavourite? icons.heartFill: icons.heart}
+                                            className={isFavourite ? "size-10": "size-7"}
+                                            tintColor={isFavourite ? "#FF0000" : "#191d31"}
+                                        />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={() => setShowShare(true)}>
+                                        <Image source={icons.send} className="size-7" />
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
@@ -489,6 +524,7 @@ const Property = () => {
             </View>
 
                 <BookingDrawer visible={showBooking} onClose={() => setShowBooking(false)} property={property} onUpdate={refetch} />
+                <ShareModal visible={showShare} onClose={() => setShowShare(false)} />
         </View>
         </KeyboardAvoidingView>
     );
