@@ -16,6 +16,15 @@ export const ShareModal = ({visible, onClose}: {visible: boolean; onClose: () =>
         }
     };
 
+    const handleCopy = () => {
+        // Add actual copy functionality here
+        Toast.show({
+            type: 'success',
+            text1: 'Copied to clipboard'
+        });
+        onClose();
+    };
+
     return (
         <Modal
             animationType='fade'
@@ -35,12 +44,7 @@ export const ShareModal = ({visible, onClose}: {visible: boolean; onClose: () =>
                     <View className="flex flex-row items-center justify-between border border-primary-200 rounded-lg p-3">
                         <Text className='text-base font-rubik flex-1 mr-2' numberOfLines={1} ellipsizeMode='tail'>https://github.com/abiolaah/restate_react_native_app/blob/main/README.md</Text>
                         <TouchableOpacity
-                            onPress={() =>{
-                                Toast.show({
-                                    type: 'warning',
-                                    text1: 'Copied'
-                                })
-                            }}
+                            onPress={handleCopy}
                             className="bg-primary-300 rounded-lg items-center justify-center px-4 py-2"
                         >
                             <Text className="text-white text-lg font-rubik-extrabold uppercase">Copy</Text>
