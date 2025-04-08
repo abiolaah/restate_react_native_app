@@ -70,7 +70,7 @@ export default function Index() {
 
     let greetings;
 
-    if (getCurrentHour <= 5 && getCurrentHour < 12) {
+    if (getCurrentHour >= 5 && getCurrentHour < 12) {
         greetings = "Good Morning"
     }
     else if (getCurrentHour >= 12 && getCurrentHour < 18) {
